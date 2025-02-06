@@ -45,6 +45,28 @@ def create_post(request):
         return JsonResponse({'id': post.id, 'message': 'Post created successfully'}, status=201)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+    
+@csrf_exempt
+def delete_user(request):
+    try:
+        if request.method == "DELETE":
+            data = json.loads(request.body.decode("utf-8"))
+            user_id = data.get("user_id")
+            if not user_id:
+                return JsonResponse({"error": "User ID is required"}, status=400)
+            if data.get("confirm") != "yes":
+                return JsonResponse({"error": "Deletion not confirmed"}, status=400)
+
+            user = User.objects.get(id=user_id)
+            user.delete()
+            return JsonResponse({'message': f'User with ID {user_id} deleted successfully'}, status=200)
+        else:
+            return JsonResponse({'error': 'Invalid request method'}, status=405)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    
 @csrf_exempt
 def login_view(request):
     if request.method == 'POST':
